@@ -137,11 +137,17 @@ export default function SharePage() {
               <>
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center mb-6">
                   <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Drop files here or click to upload</h3>
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <h3 className="text-lg font-medium text-gray-900">Drop files here or click to upload</h3>
+                    <HelpTooltip content="Upload project documentation, summaries, white papers, presentations, or any files that describe your AI implementation" />
+                  </div>
                   <p className="text-gray-600 mb-4">
                     Support: PDF, Word, Excel, PowerPoint, Visio, Images
                     <br />
                     Max: 50MB per file, 200MB total
+                  </p>
+                  <p className="text-xs text-gray-500 mb-4">
+                    💡 Include: Project docs, summaries, white papers, presentations, architecture diagrams
                   </p>
                   <input
                     type="file"
@@ -177,6 +183,7 @@ export default function SharePage() {
                   <div className="flex items-center mb-4">
                     <Type className="w-6 h-6 text-amazon-orange mr-2" />
                     <h3 className="text-lg font-medium text-gray-900">Tell Your Story</h3>
+                    <HelpTooltip content="Type or paste your AI project narrative directly - describe the problem, solution, and impact" />
                   </div>
                   <p className="text-gray-600 mb-4">
                     Describe your AI implementation experience. Include the problem you faced, solution you implemented, and the impact achieved.
@@ -200,7 +207,11 @@ export default function SharePage() {
               </div>
             )}
 
-            <div className="flex justify-center">
+            <div className="flex flex-col items-center">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-sm font-medium text-gray-700">Generate Lesson</span>
+                <HelpTooltip content="AI will analyze your content and create a structured lesson with problem, solution, and impact sections" />
+              </div>
               <button
                 onClick={generateLesson}
                 disabled={!canGenerate || generating}
@@ -469,20 +480,26 @@ export default function SharePage() {
 
               <div className="flex justify-between">
                 <div className="flex space-x-3">
-                  <button 
-                    onClick={requestPcReview}
-                    disabled={pcReviewRequested}
-                    className="bg-white hover:bg-gray-50 disabled:bg-gray-100 text-amazon-blue border border-gray-300 font-medium px-6 py-3 rounded-lg transition-colors"
-                  >
-                    {pcReviewRequested ? 'P&C Review Requested' : 'Request P&C Review'}
-                  </button>
-                  <button 
-                    onClick={() => setShowPreview(true)}
-                    className="bg-white hover:bg-gray-50 text-amazon-blue border border-amazon-blue font-medium px-6 py-3 rounded-lg transition-colors flex items-center space-x-2"
-                  >
-                    <Eye className="w-4 h-4" />
-                    <span>Preview</span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={requestPcReview}
+                      disabled={pcReviewRequested}
+                      className="bg-white hover:bg-gray-50 disabled:bg-gray-100 text-amazon-blue border border-gray-300 font-medium px-6 py-3 rounded-lg transition-colors"
+                    >
+                      {pcReviewRequested ? 'P&C Review Requested' : 'Request P&C Review'}
+                    </button>
+                    <HelpTooltip content="Optional privacy and confidentiality check to ensure your lesson meets Amazon's sharing guidelines" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => setShowPreview(true)}
+                      className="bg-white hover:bg-gray-50 text-amazon-blue border border-amazon-blue font-medium px-6 py-3 rounded-lg transition-colors flex items-center space-x-2"
+                    >
+                      <Eye className="w-4 h-4" />
+                      <span>Preview</span>
+                    </button>
+                    <HelpTooltip content="See exactly how your lesson will appear to other users before publishing" />
+                  </div>
                 </div>
                 <button 
                   onClick={publishLesson}
