@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Header from '@/components/Header'
 import LessonCard from '@/components/LessonCard'
 import { Send, Bot, User } from 'lucide-react'
+import { HelpTooltip } from '@/components/Tooltip'
 import { ChatMessage } from '@/types'
 import { getRankedLessons, mockLessons } from '@/lib/mockData'
 
@@ -70,8 +71,14 @@ export default function SearchPage() {
               <h2 className="text-xl font-semibold text-amazon-blue flex items-center">
                 <Bot className="w-5 h-5 mr-2 text-amazon-orange" />
                 AI Lesson Assistant
+                <HelpTooltip content="I understand natural language! Ask about specific problems, tools, or outcomes you're interested in." position="right" />
               </h2>
               <p className="text-gray-600 text-sm mt-1">Ask me about AI implementations and I'll find relevant lessons</p>
+              <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <p className="text-xs text-blue-800">
+                  <strong>💡 Example questions:</strong> "How did teams reduce customer support tickets?" • "What AI tools helped with data analysis?" • "Show me Claude implementations"
+                </p>
+              </div>
             </div>
             
             <div className="h-96 overflow-y-auto p-6 space-y-4">
@@ -100,14 +107,19 @@ export default function SearchPage() {
             
             <div className="p-6 border-t border-gray-200">
               <div className="flex space-x-2">
-                <input
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                  placeholder="Ask about AI tools, use cases, or specific challenges..."
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amazon-orange"
-                />
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                    placeholder="Ask about AI tools, use cases, or specific challenges..."
+                    className="w-full px-4 py-2 pr-8 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amazon-orange"
+                  />
+                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                    <HelpTooltip content="Ask natural questions like 'How did teams automate customer service?' or 'What AI tools reduced manual work?'" position="top" />
+                  </div>
+                </div>
                 <button
                   onClick={handleSend}
                   className="bg-amazon-orange hover:bg-amazon-orange-dark text-white p-2 rounded-lg transition-colors"

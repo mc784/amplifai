@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { Search, Plus, User } from 'lucide-react'
+import Tooltip from './Tooltip'
 
 export default function Header() {
   return (
@@ -18,14 +19,18 @@ export default function Header() {
           </div>
           
           <nav className="hidden md:flex items-center space-x-8">
-            <Link href="/search" className="flex items-center space-x-1 text-gray-700 hover:text-amazon-orange">
-              <Search className="w-4 h-4" />
-              <span>Search Lessons</span>
-            </Link>
-            <Link href="/share" className="flex items-center space-x-1 text-gray-700 hover:text-amazon-orange">
-              <Plus className="w-4 h-4" />
-              <span>Share Lesson</span>
-            </Link>
+            <Tooltip content="Search for AI lessons using natural language. Try asking 'How did teams reduce costs with AI?'">
+              <Link href="/search" className="flex items-center space-x-1 text-gray-700 hover:text-amazon-orange" data-tour="search">
+                <Search className="w-4 h-4" />
+                <span>Search Lessons</span>
+              </Link>
+            </Tooltip>
+            <Tooltip content="Share your AI implementation story. Upload documents or type directly - our AI will create a structured lesson.">
+              <Link href="/share" className="flex items-center space-x-1 text-gray-700 hover:text-amazon-orange" data-tour="share">
+                <Plus className="w-4 h-4" />
+                <span>Share Lesson</span>
+              </Link>
+            </Tooltip>
           </nav>
           
           <div className="flex items-center space-x-4">

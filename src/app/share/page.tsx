@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Header from '@/components/Header'
 import { Upload, FileText, Image, File, CheckCircle, AlertCircle, Code, MessageSquare, Type, Tag, X, Plus, Eye, RefreshCw, Clock, Heart, Bookmark } from 'lucide-react'
+import { HelpTooltip } from '@/components/Tooltip'
 
 export default function SharePage() {
   const [files, setFiles] = useState<File[]>([])
@@ -284,6 +285,7 @@ export default function SharePage() {
                 <div className="flex items-center mb-3">
                   <Tag className="w-5 h-5 text-amazon-orange mr-2" />
                   <label className="block text-sm font-medium text-gray-700">Tags</label>
+                  <HelpTooltip content="Tags help others discover your lesson. AI suggests relevant tags, but you can add custom ones too." position="right" />
                 </div>
                 
                 <div className="space-y-4">
@@ -363,6 +365,7 @@ export default function SharePage() {
                     <label htmlFor="share-custom-tool" className="font-medium text-gray-700">
                       Share Custom AI Tool Details
                     </label>
+                    <HelpTooltip content="Share any custom AI tools, scripts, or internal applications you built or used in this implementation." position="right" />
                   </div>
                   
                   {shareCustomTool && (
@@ -418,6 +421,7 @@ export default function SharePage() {
                     <label htmlFor="share-prompt" className="font-medium text-gray-700">
                       Share AI Prompt Used
                     </label>
+                    <HelpTooltip content="Share the specific prompts that worked well for your AI implementation. Others can copy and adapt them." position="right" />
                   </div>
                   
                   {sharePrompt && (

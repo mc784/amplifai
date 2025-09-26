@@ -1,5 +1,6 @@
 import Header from '@/components/Header'
 import LessonCard from '@/components/LessonCard'
+import UserTour from '@/components/UserTour'
 import { Search, TrendingUp, Users, Zap } from 'lucide-react'
 import Link from 'next/link'
 import { getRankedLessons, mockLessons } from '@/lib/mockData'
@@ -75,7 +76,7 @@ export default function HomePage() {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-tour="lessons">
             {featuredLessons.map((lesson) => (
               <LessonCard key={lesson.id} lesson={lesson} />
             ))}
@@ -88,6 +89,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      <UserTour />
     </div>
   )
 }
