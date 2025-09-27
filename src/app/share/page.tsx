@@ -14,17 +14,21 @@ export default function SharePage() {
   const [pcReviewRequested, setPcReviewRequested] = useState(false)
   const [shareCustomTool, setShareCustomTool] = useState(false)
   const [sharePrompt, setSharePrompt] = useState(false)
-  const [suggestedTags] = useState(['Claude API', 'Document Processing', 'Automation', 'Time Savings'])
+  const [suggestedTags, setSuggestedTags] = useState<string[]>([])
   const [customTags, setCustomTags] = useState<string[]>([])
   const [newTag, setNewTag] = useState('')
   const [showPreview, setShowPreview] = useState(false)
   const [lessonData, setLessonData] = useState({
-    title: 'Fixed Document Review Bottlenecks Using Claude',
-    quickSummary: 'Eliminated 4-6 hour manual document reviews by implementing Claude API automation, reducing review time by 80%.',
-    problem: 'Manual document review was taking 4-6 hours per document, creating bottlenecks in our workflow.',
-    solution: 'Integrated Claude API with custom prompts for structured extraction of key information from documents.',
-    impact: '80% time reduction, improved accuracy, scalable to 1000+ documents with consistent quality.'
+    title: '',
+    quickSummary: '',
+    problem: '',
+    solution: '',
+    impact: '',
+    tipsWarnings: '',
+    difficulty: 'Intermediate' as 'Beginner' | 'Intermediate' | 'Advanced',
+    timeToImplement: '2-4 hours'
   })
+  const [error, setError] = useState('')
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -43,25 +47,77 @@ export default function SharePage() {
     setCustomTags(customTags.filter(tag => tag !== tagToRemove))
   }
 
-  const generateLesson = () => {
+  const generateLesson = async () => {
     setGenerating(true)
-    setTimeout(() => {
-      setGenerating(false)
+    setError('')
+    
+    try {
+      const formData = new FormData()
+      formData.append('inputMethod', inputMethod)
+      
+      if (inputMethod === 'text') {
+        formData.append('textNarrative', textNarrative)
+      } else {
+        files.forEach(file => formData.append('files', file))
+      }
+      
+      const response = await fetch('/api/generate-lesson', {
+        method: 'POST',
+        body: formData
+      })
+      
+      const result = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to generate lesson')
+      }
+      
+      setLessonData(result.lesson)
+      setSuggestedTags(result.suggestedTags || [])
       setStep(2)
-    }, 3000)
+      
+    } catch (error) {
+      console.error('Generation error:', error)
+      setError(error instanceof Error ? error.message : 'Failed to generate lesson')
+    } finally {
+      setGenerating(false)
+    }
   }
 
-  const updateLesson = () => {
+  const updateLesson = async () => {
     setGenerating(true)
-    setTimeout(() => {
-      setGenerating(false)
-      // Simulate updated content
-      setLessonData({
-        ...lessonData,
-        title: 'Streamlined Document Reviews Using AI Automation',
-        quickSummary: 'Transformed manual 4-6 hour document reviews into 30-minute automated processes using Claude API, achieving 85% time savings.'
+    setError('')
+    
+    try {
+      const formData = new FormData()
+      formData.append('inputMethod', inputMethod)
+      
+      if (inputMethod === 'text') {
+        formData.append('textNarrative', textNarrative)
+      } else {
+        files.forEach(file => formData.append('files', file))
+      }
+      
+      const response = await fetch('/api/generate-lesson', {
+        method: 'POST',
+        body: formData
       })
-    }, 2000)
+      
+      const result = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to regenerate lesson')
+      }
+      
+      setLessonData(result.lesson)
+      setSuggestedTags(result.suggestedTags || [])
+      
+    } catch (error) {
+      console.error('Regeneration error:', error)
+      setError(error instanceof Error ? error.message : 'Failed to regenerate lesson')
+    } finally {
+      setGenerating(false)
+    }
   }
 
   const requestPcReview = () => {
@@ -76,11 +132,23 @@ export default function SharePage() {
     setFiles([])
     setTextNarrative('')
     setCustomTags([])
+    setSuggestedTags([])
+    setError('')
     setStep(1)
     setPcReviewRequested(false)
     setShareCustomTool(false)
     setSharePrompt(false)
     setShowPreview(false)
+    setLessonData({
+      title: '',
+      quickSummary: '',
+      problem: '',
+      solution: '',
+      impact: '',
+      tipsWarnings: '',
+      difficulty: 'Intermediate',
+      timeToImplement: '2-4 hours'
+    })
   }
 
   const getFileIcon = (file: File) => {
@@ -207,6 +275,15 @@ export default function SharePage() {
               </div>
             )}
 
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div className="flex items-center">
+                  <AlertCircle className="w-5 h-5 text-red-500 mr-2" />
+                  <p className="text-red-700">{error}</p>
+                </div>
+              </div>
+            )}
+
             <div className="flex flex-col items-center">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-sm font-medium text-gray-700">Generate Lesson</span>
@@ -217,7 +294,7 @@ export default function SharePage() {
                 disabled={!canGenerate || generating}
                 className="bg-amazon-orange hover:bg-amazon-orange-dark disabled:bg-gray-300 text-white font-medium px-8 py-3 rounded-lg transition-colors"
               >
-                {generating ? 'Generating Lesson...' : 'Generate AI Lesson'}
+                {generating ? 'Analyzing Content...' : 'Generate AI Lesson'}
               </button>
             </div>
           </div>
@@ -289,6 +366,17 @@ export default function SharePage() {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amazon-orange"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Tips & Warnings (100 words max)</label>
+                <textarea
+                  rows={3}
+                  value={lessonData.tipsWarnings}
+                  onChange={(e) => setLessonData({...lessonData, tipsWarnings: e.target.value})}
+                  placeholder="Share dos and don'ts, common pitfalls to avoid, or key success factors..."
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amazon-orange"
+                />
               </div>
 
               {/* Tags Section */}
@@ -535,7 +623,7 @@ export default function SharePage() {
                   {lessonData.title}
                 </h3>
                 <span className="text-xs bg-amazon-orange text-white px-2 py-1 rounded-full">
-                  Intermediate
+                  {lessonData.difficulty}
                 </span>
               </div>
               
@@ -571,7 +659,7 @@ export default function SharePage() {
                 </div>
                 <div className="flex items-center space-x-1">
                   <Clock className="w-3 h-3" />
-                  <span>2-4 hours</span>
+                  <span>{lessonData.timeToImplement}</span>
                 </div>
               </div>
             </div>
