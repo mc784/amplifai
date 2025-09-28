@@ -1,0 +1,19 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "installCommand": "npm install",
+  "devCommand": "npm run dev",
+  "env": {
+    "DATABASE_URL": "@database_url",
+    "ANTHROPIC_API_KEY": "@anthropic_api_key",
+    "AWS_REGION": "us-east-1",
+    "AI_SERVICE_PRIORITY": "claude"
+  },
+  "build": {
+    "env": {
+      "DATABASE_URL": "@database_url",
+      "ANTHROPIC_API_KEY": "@anthropic_api_key"
+    }
+  }
+}

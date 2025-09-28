@@ -2,8 +2,11 @@
 
 import { useState } from 'react'
 import Header from '@/components/Header'
+import LoadingStates from '@/components/LoadingStates'
+import ErrorHandler from '@/components/ErrorHandler'
 import { Upload, FileText, Image, File, CheckCircle, AlertCircle, Code, MessageSquare, Type, Tag, X, Plus, Eye, RefreshCw, Clock, Heart, Bookmark } from 'lucide-react'
 import { HelpTooltip } from '@/components/Tooltip'
+import { validateFiles, formatFileSize, getFileIcon } from '@/lib/fileValidation'
 
 export default function SharePage() {
   const [files, setFiles] = useState<File[]>([])
@@ -11,6 +14,10 @@ export default function SharePage() {
   const [inputMethod, setInputMethod] = useState<'files' | 'text'>('files')
   const [step, setStep] = useState(1)
   const [generating, setGenerating] = useState(false)
+  const [loadingStage, setLoadingStage] = useState<'uploading' | 'extracting' | 'generating' | 'finalizing' | 'complete'>('uploading')
+  const [loadingProgress, setLoadingProgress] = useState(0)
+  const [estimatedTime, setEstimatedTime] = useState(0)
+  const [retryCount, setRetryCount] = useState(0)
   const [pcReviewRequested, setPcReviewRequested] = useState(false)
   const [shareCustomTool, setShareCustomTool] = useState(false)
   const [sharePrompt, setSharePrompt] = useState(false)
@@ -32,7 +39,20 @@ export default function SharePage() {
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setFiles(Array.from(e.target.files))
+      const selectedFiles = Array.from(e.target.files)
+      const validation = validateFiles(selectedFiles)
+      
+      if (!validation.isValid) {
+        setError(validation.error || 'Invalid files selected')
+        return
+      }
+      
+      if (validation.warnings) {
+        console.warn('File warnings:', validation.warnings)
+      }
+      
+      setFiles(selectedFiles)
+      setError('')
     }
   }
 
@@ -50,8 +70,14 @@ export default function SharePage() {
   const generateLesson = async () => {
     setGenerating(true)
     setError('')
+    setRetryCount(0)
     
     try {
+      // Stage 1: Uploading
+      setLoadingStage('uploading')
+      setLoadingProgress(10)
+      setEstimatedTime(inputMethod === 'files' ? 30000 : 15000)
+      
       const formData = new FormData()
       formData.append('inputMethod', inputMethod)
       
@@ -61,10 +87,20 @@ export default function SharePage() {
         files.forEach(file => formData.append('files', file))
       }
       
+      // Stage 2: Processing
+      setLoadingStage('extracting')
+      setLoadingProgress(30)
+      setEstimatedTime(20000)
+      
       const response = await fetch('/api/generate-lesson', {
         method: 'POST',
         body: formData
       })
+      
+      // Stage 3: Generating
+      setLoadingStage('generating')
+      setLoadingProgress(60)
+      setEstimatedTime(15000)
       
       const result = await response.json()
       
@@ -72,9 +108,22 @@ export default function SharePage() {
         throw new Error(result.error || 'Failed to generate lesson')
       }
       
+      // Stage 4: Finalizing
+      setLoadingStage('finalizing')
+      setLoadingProgress(90)
+      setEstimatedTime(3000)
+      
+      await new Promise(resolve => setTimeout(resolve, 1000)) // Brief pause for UX
+      
       setLessonData(result.lesson)
       setSuggestedTags(result.suggestedTags || [])
-      setStep(2)
+      
+      // Stage 5: Complete
+      setLoadingStage('complete')
+      setLoadingProgress(100)
+      setEstimatedTime(0)
+      
+      setTimeout(() => setStep(2), 1000)
       
     } catch (error) {
       console.error('Generation error:', error)
@@ -87,8 +136,13 @@ export default function SharePage() {
   const updateLesson = async () => {
     setGenerating(true)
     setError('')
+    setRetryCount(prev => prev + 1)
     
     try {
+      setLoadingStage('generating')
+      setLoadingProgress(20)
+      setEstimatedTime(10000)
+      
       const formData = new FormData()
       formData.append('inputMethod', inputMethod)
       
@@ -97,6 +151,8 @@ export default function SharePage() {
       } else {
         files.forEach(file => formData.append('files', file))
       }
+      
+      setLoadingProgress(60)
       
       const response = await fetch('/api/generate-lesson', {
         method: 'POST',
@@ -109,6 +165,7 @@ export default function SharePage() {
         throw new Error(result.error || 'Failed to regenerate lesson')
       }
       
+      setLoadingProgress(100)
       setLessonData(result.lesson)
       setSuggestedTags(result.suggestedTags || [])
       
@@ -127,34 +184,74 @@ export default function SharePage() {
     }, 500)
   }
 
-  const publishLesson = () => {
-    alert('Lesson published successfully! It will appear in the community feed shortly.')
-    setFiles([])
-    setTextNarrative('')
-    setCustomTags([])
-    setSuggestedTags([])
+  const publishLesson = async () => {
+    setGenerating(true)
     setError('')
-    setStep(1)
-    setPcReviewRequested(false)
-    setShareCustomTool(false)
-    setSharePrompt(false)
-    setShowPreview(false)
-    setLessonData({
-      title: '',
-      quickSummary: '',
-      problem: '',
-      solution: '',
-      impact: '',
-      tipsWarnings: '',
-      difficulty: 'Intermediate',
-      timeToImplement: '2-4 hours'
-    })
+    
+    try {
+      const response = await fetch('/api/lessons/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          lessonData,
+          suggestedTags,
+          customTags,
+          customTool: shareCustomTool ? {} : null, // TODO: collect custom tool data
+          promptUsed: sharePrompt ? {} : null // TODO: collect prompt data
+        })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to publish lesson')
+      }
+
+      alert('Lesson published successfully! It will appear in the community feed shortly.')
+      
+      // Reset form
+      setFiles([])
+      setTextNarrative('')
+      setCustomTags([])
+      setSuggestedTags([])
+      setError('')
+      setStep(1)
+      setPcReviewRequested(false)
+      setShareCustomTool(false)
+      setSharePrompt(false)
+      setShowPreview(false)
+      setLessonData({
+        title: '',
+        quickSummary: '',
+        problem: '',
+        solution: '',
+        impact: '',
+        tipsWarnings: '',
+        difficulty: 'Intermediate',
+        timeToImplement: '2-4 hours'
+      })
+      
+    } catch (error) {
+      console.error('Publish error:', error)
+      setError(error instanceof Error ? error.message : 'Failed to publish lesson')
+    } finally {
+      setGenerating(false)
+    }
   }
 
-  const getFileIcon = (file: File) => {
-    if (file.type.includes('image')) return <Image className="w-4 h-4" />
-    if (file.type.includes('pdf')) return <FileText className="w-4 h-4" />
-    return <File className="w-4 h-4" />
+  const handleRetry = () => {
+    if (step === 1) {
+      generateLesson()
+    } else {
+      updateLesson()
+    }
+  }
+
+  const handleDismissError = () => {
+    setError('')
+    setRetryCount(0)
   }
 
   const canGenerate = inputMethod === 'files' ? files.length > 0 : textNarrative.trim().length > 0
@@ -236,9 +333,9 @@ export default function SharePage() {
                     <div className="space-y-2">
                       {files.map((file, index) => (
                         <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                          {getFileIcon(file)}
+                          <span className="text-lg">{getFileIcon(file.type)}</span>
                           <span className="flex-1 text-sm text-gray-700">{file.name}</span>
-                          <span className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(1)} MB</span>
+                          <span className="text-xs text-gray-500">{formatFileSize(file.size)}</span>
                         </div>
                       ))}
                     </div>
@@ -276,11 +373,25 @@ export default function SharePage() {
             )}
 
             {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <div className="flex items-center">
-                  <AlertCircle className="w-5 h-5 text-red-500 mr-2" />
-                  <p className="text-red-700">{error}</p>
-                </div>
+              <div className="mb-6">
+                <ErrorHandler 
+                  error={error}
+                  onRetry={handleRetry}
+                  onDismiss={handleDismissError}
+                  retryCount={retryCount}
+                  maxRetries={3}
+                />
+              </div>
+            )}
+
+            {generating && (
+              <div className="mb-6">
+                <LoadingStates 
+                  stage={loadingStage}
+                  progress={loadingProgress}
+                  fileName={files.length > 0 ? files[0].name : undefined}
+                  estimatedTime={estimatedTime}
+                />
               </div>
             )}
 

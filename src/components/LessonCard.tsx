@@ -8,7 +8,7 @@ interface LessonCardProps {
 
 export default function LessonCard({ lesson }: LessonCardProps) {
   return (
-    <Link href={`/lesson/${lesson.id}`}>
+    <Link href={`/lessons/${lesson.id}`}>
       <div className="card hover:shadow-md transition-shadow cursor-pointer">
         <div className="flex justify-between items-start mb-3">
           <h3 className="text-lg font-semibold text-amazon-blue line-clamp-2">
