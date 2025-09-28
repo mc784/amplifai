@@ -8,12 +8,16 @@
     "DATABASE_URL": "@database_url",
     "ANTHROPIC_API_KEY": "@anthropic_api_key",
     "AWS_REGION": "us-east-1",
+    "AI_MODEL": "anthropic.claude-3-haiku-20240307-v1:0",
     "AI_SERVICE_PRIORITY": "claude"
   },
   "build": {
     "env": {
       "DATABASE_URL": "@database_url",
-      "ANTHROPIC_API_KEY": "@anthropic_api_key"
+      "ANTHROPIC_API_KEY": "@anthropic_api_key",
+      "AWS_REGION": "us-east-1",
+      "AI_MODEL": "anthropic.claude-3-haiku-20240307-v1:0",
+      "AI_SERVICE_PRIORITY": "claude"
     }
   }
 }
