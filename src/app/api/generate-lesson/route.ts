@@ -4,10 +4,8 @@ import { generateLessonFromContent as generateEnhancedLesson, generateTagsFromCo
 import { generateLessonFromContent as generateDemoLesson, generateTagsFromContent as generateDemoTags } from '@/lib/demoAiService'
 import { processMultipleFiles } from '@/lib/fileProcessor'
 import { validateFiles, SUPPORTED_FILE_TYPES } from '@/lib/fileValidation'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/db'
 import crypto from 'crypto'
-
-const prisma = new PrismaClient()
 
 export async function POST(request: NextRequest) {
   try {
