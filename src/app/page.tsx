@@ -192,6 +192,11 @@ export default async function HomePage() {
         </div>
       </section>
       
+      {/* Deployment Info */}
+      <div className="fixed bottom-4 right-4 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-50">
+        v{new Date().toISOString().slice(0,16).replace('T', ' ')}
+      </div>
+      
       <SidebarChatbot />
     </div>
   )
