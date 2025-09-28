@@ -1,15 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
+
 const prisma = new PrismaClient()
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
+    const searchParams = request.nextUrl.searchParams
     const q = searchParams.get('q')
     const tags = searchParams.get('tags')?.split(',').filter(Boolean) || []
     const difficulty = searchParams.get('difficulty')?.split(',').filter(Boolean) || []
-    const timeRange = searchParams.get('timeRange')?.split(',').filter(Boolean) || []
     const sortBy = searchParams.get('sortBy') || 'relevance'
 
     let lessons = await prisma.lesson.findMany({
